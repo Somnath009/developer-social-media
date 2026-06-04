@@ -1,7 +1,13 @@
 const userModel = require("../models/user.model");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+/**
+ * @description Register a new user
+ * @route POST /api/auth/register
+ * @access public
+ * @returns {Object} - The registered user
+ * @throws {Error} - If the user already exists or if there is an error
+ */
 async function registerUserController(req, res) {
     try {
         const { name, email, username, password } = req.body;
@@ -9,6 +15,14 @@ async function registerUserController(req, res) {
         if (!name || !email || !username || !password) {
             return res.status(400).json({
                 message: "All fields are required",
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                message: "Invalid email",
             });
         }
 
@@ -22,13 +36,11 @@ async function registerUserController(req, res) {
             });
         }
 
-        const hashPassword = await bcrypt.hash(password, 10);
-
         const newUser = await userModel.create({
             name,
             email,
             username,
-            password: hashPassword,
+            password,
         });
 
         const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
@@ -49,6 +61,14 @@ async function registerUserController(req, res) {
     }
 }
 
+/**
+ * @description Login a user
+ * @route POST /api/auth/login
+ * @access public
+ * @returns {Object} - The logged in user
+ * @throws {Error} - If the user is not found or if the password is incorrect
+ */
+
 async function loginUserController(req, res) {
     try {
         const { email, password } = req.body;
@@ -61,7 +81,7 @@ async function loginUserController(req, res) {
             });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await user.comparePassword(password);
 
         if (!isMatch) {
             return res.status(400).json({
@@ -77,7 +97,29 @@ async function loginUserController(req, res) {
 
         return res.status(201).json({
             message: "User loggedin successfully",
-            user: user
+            user: user,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+        });
+    }
+}
+
+/**
+ * @description Logout a user
+ * @route POST /api/auth/logout
+ * @access public
+ * @returns {Object} - The logged out user
+ * @throws {Error} - If the user is not found or if there is an error
+ */
+
+async function logoutUserController(req, res) {
+    try {
+        res.clearCookie("token");
+        return res.status(200).json({
+            message: "User logged out successfully",
         });
     } catch (error) {
         console.log(error);
@@ -90,4 +132,5 @@ async function loginUserController(req, res) {
 module.exports = {
     registerUserController,
     loginUserController,
+    logoutUserController,
 };

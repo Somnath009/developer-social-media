@@ -1,44 +1,105 @@
-const mongoose = require('mongoose');
-const { use } = require('../app');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
-const userSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
+const userSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        username: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            lowercase: true,
+        },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            lowercase: true,
+        },
+        password: {
+            type: String,
+            required: true,
+            select: false,
+        },
+        profilePicture: {
+            type: String,
+            default: "",
+        },
+        bio: {
+            type: String,
+            default: "",
+            maxlength: 300,
+        },
+        skills: {
+            type: [String],
+            default: [],
+        },
+        socialLinks: {
+            github: {
+                type: String,
+                default: "",
+            },
+            linkedin: {
+                type: String,
+                default: "",
+            },
+            twitter: {
+                type: String,
+                default: "",
+            },
+            portfolio: {
+                type: String,
+                default: "",
+            },
+        },
+        bannerPicture: {
+            type: String,
+            default: "",
+        },
+        followersCount: {
+            type: Number,
+            default: 0,
+        },
+        followingCount: {
+            type: Number,
+            default: 0,
+        },
+        postsCount: {
+            type: Number,
+            default: 0,
+        },
+        role: {
+            type: String,
+            enum: ["user", "admin"],
+            default: "user",
+        },
+        isVerified: {
+            type: Boolean,
+            default: false,
+        },
     },
-    username: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    password: {
-        type: String,
-        required: true,
-        select: false
-    },
-    profilePicture: {
-        type: String,
-        default: ""
-    },
-    bio: {
-        type: String,
-        default: ""
-    },
-    skills: {
-        type: [String],
-        default: []
-    },
-    bannerPicture: {
-        type: String,
-        default: ""
-    },
-})
+    { timestamps: true },
+);
 
-const userModel = mongoose.model('User', userSchema);
+//hash password
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) {
+        return;
+    }
+    this.password = await bcrypt.hash(this.password, 10);
+});
+
+//compare password
+userSchema.methods.comparePassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
+};
+
+const userModel = mongoose.model("User", userSchema);
 
 module.exports = userModel;
