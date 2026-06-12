@@ -1,7 +1,11 @@
-const express = require("express")
-const { registerUserController, loginUserController, logoutUserController } = require("../controllers/auth.controllers")
+const express = require("express");
+const {
+    registerUserController,
+    loginUserController,
+    logoutUserController,
+} = require("../controllers/auth.controllers");
 
-const router = express.Router()
+const router = express.Router();
 
 /**
  * @description Register a new user
@@ -11,7 +15,7 @@ const router = express.Router()
  * @throws {Error} - If the user already exists or if there is an error
  */
 
-router.post("/register", registerUserController)
+router.post("/register", registerUserController);
 
 /**
  * @description Login a user
@@ -21,7 +25,7 @@ router.post("/register", registerUserController)
  * @throws {Error} - If the user is not found or if the password is incorrect
  */
 
-router.post("/login", loginUserController)
+router.post("/login", loginUserController);
 
 /**
  * @description Logout a user
@@ -31,6 +35,6 @@ router.post("/login", loginUserController)
  * @throws {Error} - If the user is not found or if there is an error
  */
 
-router.post("/logout", logoutUserController)
+router.post("/logout", logoutUserController);
 
-module.exports = router
+module.exports = router;
